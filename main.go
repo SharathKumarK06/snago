@@ -3,68 +3,42 @@ package main
 import (
     // "fmt"
     "log"
+    "time"
 
     "github.com/gdamore/tcell/v2"
 )
 
+func run(screen tcell.Screen) {
+    // Set default text style
+    defStyle := tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
+    screen.SetStyle(defStyle)
 
+    // Initialization of game
+    xmax, ymax := screen.Size()
+    snake := ':'
+    pos_x := int(xmax / 2)
+    pos_y := int(ymax / 2)
 
-func drawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
-    x, y := x1, y1
-    for _, c := range []rune(text) {
-        s.SetContent(x, y, c, nil, style)
-        x++
+    // snakeStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorRed)
+    snakeStyle := tcell.StyleDefault.Foreground(tcell.ColorRed)
 
-        if x > x2 {
-            y++
-            x = x1
-        }
-        if y > y2 {
-            break
-        }
-    }
-}
+    for {
+        // Clear screen
+        screen.Clear()
 
-func fillBox(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style) {
-    if x1 > x2 {
-        x1, x2 = x2, x1
-    }
-    if y1 > y2 {
-        y1, y2 = y2, y1
-    }
+        screen.SetContent(pos_x, pos_y, snake, nil, snakeStyle)
 
-    for y := y1; y <= y2; y++ {
-        for x := x1; x <= x2; x++ {
-            s.SetContent(x, y, ' ', nil, style)
-        }
-    }
-}
+        pos_x++
 
-func drawBox(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
-    if x1 > x2 {
-        x1, x2 = x2, x1
-    }
-    if y1 > y2 {
-        y1, y2 = y2, y1
+        // Update screen
+        screen.Show()
+
+        time.Sleep(80 * time.Millisecond)
     }
 
-    // Draw borders
-    for x := x1; x <= x2; x++ {
-        s.SetContent(x, y1, ' ', nil, style)
-        s.SetContent(x, y2, ' ', nil, style)
-    }
-    for y := y1 + 1; y < y2; y++ {
-        s.SetContent(x1, y, ' ', nil, style)
-        s.SetContent(x2, y, ' ', nil, style)
-    }
-
-    drawText(s, x1 + 1, y1 + 1, x2 - 1, y2 - 1, style, text)
 }
 
 func main() {
-    defStyle := tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
-    textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorPurple)
-
     // initialize screen
     s, err := tcell.NewScreen()
     if err != nil {
@@ -75,14 +49,8 @@ func main() {
 
     }
 
-    // Set default text style
-    s.SetStyle(defStyle)
     s.EnableMouse()
     s.EnablePaste()
-
-    // Clear screen
-    s.Clear()
-
 
     quit := func() {
         // You have to catch panics in a defer, clean up, and
@@ -94,20 +62,13 @@ func main() {
             panic(maybePanic)
         }
     }
+
     defer quit()
+
+    go run(s)
 
     // Event loop
     for {
-        // Update screen
-        s.Show()
-
-        // s.SetContent(5, 5, 'H', nil, textStyle)
-        xmax, ymax := s.Size()
-
-        // Draw borders
-        drawBox(s, 0, 0, xmax - 1, ymax - 1, textStyle, "")
-
-
         // Poll event
         ev := s. PollEvent()
 
@@ -131,9 +92,7 @@ func main() {
                 switch ev.Buttons() {
                     // case tcell.Button1, tcell.Button2:
                     // case tcell.ButtonNone:
-
                 }
-
         }
     }
 }
